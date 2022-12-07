@@ -31,6 +31,8 @@ public:
             }
             map.push_back(row);
         }
+
+        reset();
     }
 
     void printMap() {
@@ -50,6 +52,9 @@ public:
     void reset() { 
         homeScore = 0;
         guestScore = 0;
+        numberOfRound = 0;
+        gameOver = false;
+
         restart();
     }
 
@@ -208,14 +213,14 @@ public:
             if (tRockets[i].x == hx && tRockets[i].y == hy) { // check t and r rockets hit H, t and r score 20 points, restart game
                 // +20 score to guest
                 guestScore += 20;
-                //restartGame = true;
-                //return;
+                restartGame = true;
+                return;
             }
             for (int j = 0; j < hRockets.size(); j++) {
                 if (tRockets[i].x == hRockets[j].x && tRockets[i].y == hRockets[j].y) { // check h rockets hit rockets from t and r, h get 2 points
                     // +2 score to home
                     homeScore += 2;
-                    indexHToDelete.push_back(j); cout << "--------------------dsdsdsds----" << j << endl; Sleep(2000);
+                    indexHToDelete.push_back(j);// cout << "--------------------dsdsdsds----" << j << endl; Sleep(1000);
                     indexTToDelete.push_back(i);
                 }
             }
@@ -229,13 +234,12 @@ public:
                 if (rRockets[i].x == hRockets[j].x && rRockets[i].y == hRockets[j].y) { // check h rockets hit rockets from t and r, h get 2 points
                     // +2 score to home
                     homeScore += 2;
-                    indexHToDelete.push_back(j); cout << "--------------------dsdsdsds----" << j << endl; Sleep(2000);
+                    indexHToDelete.push_back(j);// cout << "--------------------dsdsdsds----" << j << endl; Sleep(1000);
                     indexRToDelete.push_back(i);
                 }
             }
         } 
 
-        
         // delete rocket
         deleteAllHRocketsByIndex(indexHToDelete);
         deleteAllTRocketsByIndex(indexTToDelete);
@@ -262,6 +266,11 @@ public:
     void checkRestartGame() {
         // check if game restart
         if (restartGame) {
+            if (numberOfRound == 5) {
+                gameOver = true;
+            }
+
+            numberOfRound++;
             restart();
             updateMap();
         }
@@ -423,6 +432,10 @@ public:
         return ((int)c - 48);
     }
 
+    bool getGameOver() {
+        return gameOver;
+    }
+
 private:
     int mapWidth, mapHeight;
     vector<vector<char>> map;
@@ -440,6 +453,10 @@ private:
     bool disableT, disableR, restartGame;
 
     int homeScore, guestScore;
+
+    int numberOfRound;
+
+    bool gameOver;
 
     bool canMoveH(char direction) {
         switch (direction) {
@@ -481,6 +498,10 @@ private:
     }
 
     bool canMoveT(char direction) {
+        if (disableR) {
+            return false;
+        }
+
         switch (direction) {
         case '4':
             if (tx - 1 < 0) {
@@ -497,6 +518,10 @@ private:
     }
 
     bool canMoveR(char direction) {
+        if (disableT) {
+            return false;
+        }
+
         switch (direction) {
         case '8':
             if (ry - 1 < 0) {
@@ -525,6 +550,10 @@ private:
     }
 
     bool canShootT() {
+        if (disableT) {
+            return false;
+        }
+
         for (int i = 0; i < tRockets.size(); i++) {
             if (tRockets[i].x == tx) {
                 if (tRockets[i].y <= 2)
@@ -535,6 +564,10 @@ private:
     }
 
     bool canShootR() {
+        if (disableR) {
+            return false;
+        }
+
         for (int i = 0; i < rRockets.size(); i++) {
             if (rRockets[i].x == (rx - 2) && rRockets[i].y == (ry - 2)) {
                 return false;
@@ -557,58 +590,44 @@ private:
     }
 
     void deleteAllHRocketsByIndex(deque<int> indexHToDelete) {
-        deque<RocketPosition>::iterator i = hRockets.begin();
-        deque<deque<RocketPosition>::iterator> iToDelete;
-        int indexCounter = 0;
-        while (i != hRockets.end()) {
-            for (int j = 0; j < indexHToDelete.size(); j++) { // H Rocket
-                if (indexHToDelete[j] == indexCounter) {
-                    iToDelete.push_back(i);
-                    break;
-                }
+        deque<RocketPosition> newHRockets;
+        for (int i = 0; i < hRockets.size(); i++) {
+            if (!iExistIn(i, indexHToDelete)) {
+                newHRockets.push_back(hRockets[i]);
             }
-            i++;
-            indexCounter++;
+            else {
+                canShootH[hRockets[i].direction];
+            }
         }
-        for (int j = 0; j < iToDelete.size(); j++) {
-            canShootH[iToDelete[j]->direction] = true;
-            hRockets.erase(iToDelete[j]);
-        }
+        hRockets = newHRockets;
     }
 
     void deleteAllTRocketsByIndex(deque<int> indexTToDelete) {
-        deque<RocketPosition>::iterator i = tRockets.begin();
-        deque<deque<RocketPosition>::iterator> iToDelete;
-        int indexCounter = 0;
-        while (i != tRockets.end()) {
-            for (int j = 0; j < indexTToDelete.size(); j++) { // H Rocket
-                if (indexTToDelete[j] == indexCounter)
-                    iToDelete.push_back(i);
+        deque<RocketPosition> newTRockets;
+        for (int i = 0; i < tRockets.size(); i++) {
+            if (!iExistIn(i, indexTToDelete)) {
+                newTRockets.push_back(tRockets[i]);
             }
-            i++;
-            indexCounter++;
         }
-        for (int j = 0; j < iToDelete.size(); j++) {
-            tRockets.erase(iToDelete[j]);
-        }
+        tRockets = newTRockets;
     }
 
     void deleteAllRRocketsByIndex(deque<int> indexRToDelete) {
-        deque<RocketPosition>::iterator i = rRockets.begin();
-        deque<deque<RocketPosition>::iterator> iToDelete;
-        int indexCounter = 0;
-        while (i != rRockets.end()) {
-            for (int j = 0; j < indexRToDelete.size(); j++) { // H Rocket
-                if (indexRToDelete[j] == indexCounter)
-                    iToDelete.push_back(i);
+        deque<RocketPosition> newRRockets;
+        for (int i = 0; i < rRockets.size(); i++) {
+            if (!iExistIn(i, indexRToDelete)) {
+                newRRockets.push_back(rRockets[i]);
             }
-            i++;
-            indexCounter++;
         }
-        for (int j = 0; j < iToDelete.size(); j++) {
-            rRockets.erase(iToDelete[j]);
-        }
+        rRockets = newRRockets;
+    }
 
+    bool iExistIn(int target, deque<int> indexHToDelete) {
+        for (int i = 0; i < indexHToDelete.size(); i++)
+            if (target == indexHToDelete[i])
+                return true;
+        
+        return false;
     }
 };
 
