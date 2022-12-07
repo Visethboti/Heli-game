@@ -10,6 +10,8 @@
 
 using namespace std;
 
+
+
 mutex mtx;
 
 struct RocketPosition {
@@ -36,7 +38,6 @@ public:
     }
 
     void printMap() {
-        Sleep(250);
         system("CLS");
         for (int i = 0; i < mapHeight; i++) {
             for (int j = 0; j < mapWidth; j++) {
@@ -45,7 +46,7 @@ public:
             cout << "|" << endl;
         }
         cout << "///////////////////////////////////" << endl;
-        cout << "Home Score : " << homeScore << " Guest Score: " << guestScore << endl;
+        cout << "Home Score : " << homeScore << " Guest Score: " << guestScore << " Number of Restart: " << numberOfRound  << endl;
         cout << "///////////////////////////////////" << endl;
     }
 
@@ -194,7 +195,7 @@ public:
         iToDelete.clear();
         i = rRockets.begin();
         while (i != rRockets.end()) {
-            if (i->x < 0 || i->y < 0 || i->y >= mapHeight) { // R Rocket
+            if (i->x <= 0 || i->y <= 0 || i->y >= mapHeight) { // R Rocket
                 iToDelete.push_back(i);
             }
             i++;
@@ -229,6 +230,8 @@ public:
             if (rRockets[i].x == hx && rRockets[i].y == hy) { // check t and r rockets hit H, t and r score 20 points, restart game
                 // +20 score to guest
                 guestScore += 20;
+                restartGame = true;
+                return;
             }
             for (int j = 0; j < hRockets.size(); j++) {
                 if (rRockets[i].x == hRockets[j].x && rRockets[i].y == hRockets[j].y) { // check h rockets hit rockets from t and r, h get 2 points
@@ -266,7 +269,7 @@ public:
     void checkRestartGame() {
         // check if game restart
         if (restartGame) {
-            if (numberOfRound == 5) {
+            if (numberOfRound == 4) {
                 gameOver = true;
             }
 
@@ -289,6 +292,7 @@ public:
                 break;
             case '4':
                 hx--;
+                break;
             case '6':
                 hx++;
                 break;
@@ -310,8 +314,9 @@ public:
                 break;
             }
         }
-        updateMap();
-        printMap();
+            
+        //updateMap();
+        //printMap();
     }
 
     void tMove(char direction) {
@@ -326,8 +331,8 @@ public:
                 break;
             }
         }
-        updateMap();
-        printMap();
+        //updateMap();
+        //printMap();
     }
 
     void rMove(char direction) {
@@ -342,54 +347,59 @@ public:
                 break;
             }
         }
-        updateMap();
-        printMap();
+        //updateMap();
+        //printMap();
     }
 
     void hShoot(char direction) {
-        int intDirection = charToInt(direction);
-        if (canShootH[intDirection]) {
-            canShootH[intDirection] = false;
-            RocketPosition newRocket;
-            newRocket.direction = intDirection;
-            switch (direction) {
-            case '8': // top
-                newRocket.x = hx;
-                newRocket.y = hy-1;
-                break;
-            case '2': // down
-                newRocket.x = hx;
-                newRocket.y = hy + 1;
-                break;
-            case '4': // left
-                newRocket.x = hx - 1;
-                newRocket.y = hy;
-                break;
-            case '6': // right
-                newRocket.x = hx + 1;
-                newRocket.y = hy;
-                break;
-            case '7': // top left
-                newRocket.x = hx - 1;
-                newRocket.y = hy - 1;
-                break;
-            case '9': // top right
-                newRocket.x = hx + 1;
-                newRocket.y = hy - 1;
-                break;
-            case '1': // down left
-                newRocket.x = hx - 1;
-                newRocket.y = hy + 1;
-                break;
-            case '3': // down right
-                newRocket.x = hx + 1;
-                newRocket.y = hy + 1;
-                break;
+        if (hx != 0 && hy != (mapHeight - 1)) {
+            int intDirection = charToInt(direction);
+            if (canShootH[intDirection]) {
+                canShootH[intDirection] = false;
+                RocketPosition newRocket;
+                newRocket.direction = intDirection;
+                switch (direction) {
+                case '8': // top
+                    newRocket.x = hx;
+                    newRocket.y = hy - 1;
+                    break;
+                case '2': // down
+                    newRocket.x = hx;
+                    newRocket.y = hy + 1;
+                    break;
+                case '4': // left
+                    newRocket.x = hx - 1;
+                    newRocket.y = hy;
+                    break;
+                case '6': // right
+                    newRocket.x = hx + 1;
+                    newRocket.y = hy;
+                    break;
+                case '7': // top left
+                    newRocket.x = hx - 1;
+                    newRocket.y = hy - 1;
+                    break;
+                case '9': // top right
+                    newRocket.x = hx + 1;
+                    newRocket.y = hy - 1;
+                    break;
+                case '1': // down left
+                    newRocket.x = hx - 1;
+                    newRocket.y = hy + 1;
+                    break;
+                case '3': // down right
+                    newRocket.x = hx + 1;
+                    newRocket.y = hy + 1;
+                    break;
+                }
+                hRockets.push_back(newRocket);
             }
-            hRockets.push_back(newRocket);
         }
-        updateMap();
-        printMap();
+
+
+       
+        //updateMap();
+        //printMap();
     }
 
     void tShoot() {
@@ -403,8 +413,8 @@ public:
             tRockets.push_back(newRocket);
         }
 
-        updateMap();
-        printMap();
+        //updateMap();
+        //printMap();
     }
 
     void rShoot() {
@@ -416,16 +426,17 @@ public:
         if (canShootR()){
             newRocketM.x = rx - 1;
             newRocketM.y = ry - 1;
-
-            newRocketW.x = rx - 1;
-            newRocketW.y = ry + 1;
-
             rRockets.push_back(newRocketM);
-            rRockets.push_back(newRocketW);
+
+            if (ry < (mapHeight - 1)) {
+                newRocketW.x = rx - 1;
+                newRocketW.y = ry + 1;
+                rRockets.push_back(newRocketW);
+            }
         }
 
-        updateMap();
-        printMap();
+        //updateMap();
+        //printMap();
     }
 
     int charToInt(char c) {
@@ -435,6 +446,15 @@ public:
     bool getGameOver() {
         return gameOver;
     }
+
+    void printWinner() {
+        cout << "===== Game Over =====" << endl;
+        if (homeScore > guestScore)
+            cout << "The winner is Home! Well Done H!" << endl;
+        else
+            cout << "The winner is Guest! Well Done T and R!" << endl;
+        cout << "=====================" << endl;
+     }
 
 private:
     int mapWidth, mapHeight;
@@ -477,19 +497,19 @@ private:
                 return false;
             break;
         case '7':
-            if ((hx - 1) < 0 && (hy - 1) == 0)
+            if ((hx - 1) < 0 || (hy - 1) == 0)
                 return false;
             break;
         case '9':
-            if ((hx + 1) == (mapWidth - 1) && (hy - 1) == 0)
+            if ((hx + 1) == (mapWidth - 1) || (hy - 1) == 0)
                 return false;
             break;
         case '1':
-            if ((hx - 1) < 0 && (hy + 1) == mapHeight)
+            if ((hx - 1) < 0 || (hy + 1) == mapHeight)
                 return false;
             break;
         case '3':
-            if ((hx + 1) == (mapWidth - 1) && (hy + 1) == mapHeight)
+            if ((hx + 1) == (mapWidth - 1) || (hy + 1) == mapHeight)
                 return false;
             break;
         }
@@ -524,12 +544,12 @@ private:
 
         switch (direction) {
         case '8':
-            if (ry - 1 < 0) {
+            if (ry == 1) {
                 return false;
             }
             break;
         case '2':
-            if (ry + 1 == mapHeight) {
+            if (ry == (mapHeight - 1)) {
                 return false;
             }
             break;
@@ -631,122 +651,116 @@ private:
     }
 };
 
-void function_thread(int n) {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void hThread_Function(Game &game) {
     thread::id this_id = this_thread::get_id();
-    for (int i = 0; i < n; i++) {
-       mtx.lock();
-       mtx.unlock();
-    }
-   
+    
+    
+    char moveDirectionChoice, shootDirectionChoice, moveOrShootChoice;
+    srand(time(NULL));
+    char possibleChoice[8] = { '1','2','3','4','6','7','8','9' };
+    char possibleMoveorShoot[2] = { 'm', 's' };
+    do {
+        // decide to move or shoot
+        moveOrShootChoice = possibleMoveorShoot[rand() % 2];
+        moveDirectionChoice = possibleChoice[rand() % 8];
+        shootDirectionChoice = moveDirectionChoice;
+
+        mtx.lock();
+            if (moveOrShootChoice == 'm')
+                game.hMove(moveDirectionChoice);
+            else if (moveOrShootChoice == 's') {
+                game.hShoot(shootDirectionChoice);
+            }
+                
+        mtx.unlock();
+        Sleep(250);
+    } while (!game.getGameOver());
+
+    
 }
+
+void gameTimerThread_Function(Game &game) {
+    thread::id this_id = this_thread::get_id();
+    
+    do {
+        mtx.lock();
+            game.updateMap();
+            game.updateMoveRocket();
+            game.removeOutofMapRockets();
+            game.updateMap();
+            game.printMap();
+        mtx.unlock();
+        Sleep(100);
+    } while (!game.getGameOver());
+    game.printWinner();
+}
+
+void tThread_Function(Game& game) {
+    char moveDirectionChoice,  moveOrShootChoice;
+    char possibleChoice[8] = { '4','6' };
+    char possibleMoveorShoot[2] = { 'm', 's' };
+    srand(time(NULL));
+    do {
+        // decide to move or shoot
+        moveDirectionChoice = possibleChoice[rand() % 2];
+        moveOrShootChoice = possibleMoveorShoot[rand() % 2];
+
+        mtx.lock();
+        if (moveOrShootChoice == 'm')
+            game.tMove(moveDirectionChoice);
+        else if (moveOrShootChoice == 's')
+            game.tShoot();
+        mtx.unlock();
+        Sleep(250);
+    } while (!game.getGameOver());
+
+}
+
+void rThread_Function(Game& game) {
+    char moveDirectionChoice, moveOrShootChoice;
+    char possibleChoice[8] = { '8','2' };
+    char possibleMoveorShoot[2] = { 'm', 's' };
+    srand(time(NULL));
+    do {
+        // decide to move or shoot
+        moveDirectionChoice = possibleChoice[rand() % 2];
+        moveOrShootChoice = possibleMoveorShoot[rand() % 2];
+
+        mtx.lock();
+        if (moveOrShootChoice == 'm')
+            game.rMove(moveDirectionChoice);
+        else if (moveOrShootChoice == 's')
+            game.rShoot();
+        mtx.unlock();
+        Sleep(250);
+    } while (!game.getGameOver());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
-    /*
-    thread thread1(function_thread, 3);
-    thread thread2(function_thread, 3);
-    thread thread3(function_thread, 3);
-
-    thread1.join();
-    thread2.join();
-    thread3.join();
-    */
-
+    // create and initial the game
     Game game;
-    game.init(13,13);
+    game.init(13, 13);
     game.restart();
     game.updateMap();
     game.printMap();
 
-    game.tMove(2);
-    game.tShoot();
-    game.rShoot();
-    game.hShoot('1');
-    game.hShoot('2');
-    game.hShoot('3');
-    game.hShoot('4');
-    game.hShoot('6');
-    game.hShoot('7');
-    game.hShoot('8');
-    game.hShoot('9');
+    // create threads and pass the reference of the game to each threads
+    thread thread1(hThread_Function, ref(game));
+    thread thread2(gameTimerThread_Function, ref(game));
+    thread thread3(tThread_Function, ref(game));
+    thread thread4(rThread_Function, ref(game));
 
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
+    // wait for each thread to finished
+    thread1.join();
+    thread2.join();
+    thread3.join();
+    thread4.join();
 
-    game.tMove('4');
-    game.tShoot();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.rShoot();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    //game.rMove('2');
-    //game.rMove('2');
-    game.rShoot();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.hMove('8');
-    game.hMove('9');
-    game.hShoot('1');
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.hShoot('9');
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
-
-    game.updateMoveRocket();
-    game.removeOutofMapRockets();
-    game.updateMap();
-    game.printMap();
+    cout << "All thread finished!" << endl;
 }

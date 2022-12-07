@@ -1,2 +1,5 @@
 ﻿  CSCI 640 - Final Project.cpp
+C:\Users\viset\source\repos\CSCI 640 - Final Project\CSCI 640 - Final Project\CSCI 640 - Final Project.cpp(660,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\viset\source\repos\CSCI 640 - Final Project\CSCI 640 - Final Project\CSCI 640 - Final Project.cpp(703,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\viset\source\repos\CSCI 640 - Final Project\CSCI 640 - Final Project\CSCI 640 - Final Project.cpp(724,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   CSCI 640 - Final Project.vcxproj -> C:\Users\viset\source\repos\CSCI 640 - Final Project\x64\Debug\CSCI 640 - Final Project.exe
