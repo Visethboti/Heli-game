@@ -1,4 +1,4 @@
-
+        
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -43,6 +43,14 @@ public:
             cout << "|" << endl;
         }
         cout << "///////////////////////////////////" << endl;
+        cout << "Home Score : " << homeScore << " Guest Score: " << guestScore << endl;
+        cout << "///////////////////////////////////" << endl;
+    }
+
+    void reset() { 
+        homeScore = 0;
+        guestScore = 0;
+        restart();
     }
 
     void restart() {
@@ -65,6 +73,14 @@ public:
         for (int i = 0; i < 10; i++) {
             canShootH[i] = true;
         }
+
+        restartGame = false;
+        disableR = false;
+        disableT = false;
+
+        hRockets.clear();
+        tRockets.clear();
+        rRockets.clear();
     }
 
     void updateMap() {
@@ -180,6 +196,74 @@ public:
         }
         for (int j = 0; j < iToDelete.size(); j++) {
             rRockets.erase(iToDelete[j]);
+        }
+
+        collisionDetection(); 
+        checkRestartGame();
+    }
+
+    void collisionDetection() {
+        deque<int> indexHToDelete, indexTToDelete, indexRToDelete;
+        for (int i = 0; i < tRockets.size(); i++) {
+            if (tRockets[i].x == hx && tRockets[i].y == hy) { // check t and r rockets hit H, t and r score 20 points, restart game
+                // +20 score to guest
+                guestScore += 20;
+                //restartGame = true;
+                //return;
+            }
+            for (int j = 0; j < hRockets.size(); j++) {
+                if (tRockets[i].x == hRockets[j].x && tRockets[i].y == hRockets[j].y) { // check h rockets hit rockets from t and r, h get 2 points
+                    // +2 score to home
+                    homeScore += 2;
+                    indexHToDelete.push_back(j); cout << "--------------------dsdsdsds----" << j << endl; Sleep(2000);
+                    indexTToDelete.push_back(i);
+                }
+            }
+        }
+        for (int i = 0; i < rRockets.size(); i++) {
+            if (rRockets[i].x == hx && rRockets[i].y == hy) { // check t and r rockets hit H, t and r score 20 points, restart game
+                // +20 score to guest
+                guestScore += 20;
+            }
+            for (int j = 0; j < hRockets.size(); j++) {
+                if (rRockets[i].x == hRockets[j].x && rRockets[i].y == hRockets[j].y) { // check h rockets hit rockets from t and r, h get 2 points
+                    // +2 score to home
+                    homeScore += 2;
+                    indexHToDelete.push_back(j); cout << "--------------------dsdsdsds----" << j << endl; Sleep(2000);
+                    indexRToDelete.push_back(i);
+                }
+            }
+        } 
+
+        
+        // delete rocket
+        deleteAllHRocketsByIndex(indexHToDelete);
+        deleteAllTRocketsByIndex(indexTToDelete);
+        deleteAllRRocketsByIndex(indexRToDelete);
+
+
+        // check h rockets hit t and r, h get 4 points, disable t and r when hit by h
+        for (int i = 0; i < hRockets.size(); i++) {
+            if (hRockets[i].x == tx && hRockets[i].y == ty) {
+                // +4 score to home
+                homeScore += 4;
+            }
+            if (hRockets[i].x == rx && hRockets[i].y == ry) {
+                // +4 score to home
+                homeScore += 4;
+            }
+        }
+
+        // check if both t and r is disabled, if yes then restart 
+        if (disableT && disableR)
+            restartGame = true;
+    }
+
+    void checkRestartGame() {
+        // check if game restart
+        if (restartGame) {
+            restart();
+            updateMap();
         }
     }
 
@@ -353,6 +437,10 @@ private:
 
     bool canShootH[10];
 
+    bool disableT, disableR, restartGame;
+
+    int homeScore, guestScore;
+
     bool canMoveH(char direction) {
         switch (direction) {
         case '8':
@@ -467,6 +555,61 @@ private:
         
         return true;
     }
+
+    void deleteAllHRocketsByIndex(deque<int> indexHToDelete) {
+        deque<RocketPosition>::iterator i = hRockets.begin();
+        deque<deque<RocketPosition>::iterator> iToDelete;
+        int indexCounter = 0;
+        while (i != hRockets.end()) {
+            for (int j = 0; j < indexHToDelete.size(); j++) { // H Rocket
+                if (indexHToDelete[j] == indexCounter) {
+                    iToDelete.push_back(i);
+                    break;
+                }
+            }
+            i++;
+            indexCounter++;
+        }
+        for (int j = 0; j < iToDelete.size(); j++) {
+            canShootH[iToDelete[j]->direction] = true;
+            hRockets.erase(iToDelete[j]);
+        }
+    }
+
+    void deleteAllTRocketsByIndex(deque<int> indexTToDelete) {
+        deque<RocketPosition>::iterator i = tRockets.begin();
+        deque<deque<RocketPosition>::iterator> iToDelete;
+        int indexCounter = 0;
+        while (i != tRockets.end()) {
+            for (int j = 0; j < indexTToDelete.size(); j++) { // H Rocket
+                if (indexTToDelete[j] == indexCounter)
+                    iToDelete.push_back(i);
+            }
+            i++;
+            indexCounter++;
+        }
+        for (int j = 0; j < iToDelete.size(); j++) {
+            tRockets.erase(iToDelete[j]);
+        }
+    }
+
+    void deleteAllRRocketsByIndex(deque<int> indexRToDelete) {
+        deque<RocketPosition>::iterator i = rRockets.begin();
+        deque<deque<RocketPosition>::iterator> iToDelete;
+        int indexCounter = 0;
+        while (i != rRockets.end()) {
+            for (int j = 0; j < indexRToDelete.size(); j++) { // H Rocket
+                if (indexRToDelete[j] == indexCounter)
+                    iToDelete.push_back(i);
+            }
+            i++;
+            indexCounter++;
+        }
+        for (int j = 0; j < iToDelete.size(); j++) {
+            rRockets.erase(iToDelete[j]);
+        }
+
+    }
 };
 
 void function_thread(int n) {
@@ -491,7 +634,7 @@ int main()
     */
 
     Game game;
-    game.init(10,10);
+    game.init(13,13);
     game.restart();
     game.updateMap();
     game.printMap();
@@ -528,8 +671,8 @@ int main()
     game.updateMap();
     game.printMap();
 
-    game.rMove('2');
-    game.rMove('2');
+    //game.rMove('2');
+    //game.rMove('2');
     game.rShoot();
 
     game.updateMoveRocket();
